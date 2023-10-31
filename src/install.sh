@@ -8,6 +8,9 @@ apk update
 # install pg_dump
 apk add postgresql-client
 
+#install gzip
+apk add gzip
+
 # install gpg
 apk add gnupg
 
