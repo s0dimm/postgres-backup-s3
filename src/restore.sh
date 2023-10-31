@@ -8,9 +8,9 @@ source ./env.sh
 s3_uri_base="s3://${S3_BUCKET}/${S3_PREFIX}"
 
 if [ -z "$PASSPHRASE" ]; then
-  file_type=".dump"
+  file_type=".dump.gz"
 else
-  file_type=".dump.gpg"
+  file_type=".dump.gz.gpg"
 fi
 
 if [ $# -eq 1 ]; then
@@ -31,14 +31,13 @@ aws $aws_args s3 cp "${s3_uri_base}/${key_suffix}" "db${file_type}"
 
 if [ -n "$PASSPHRASE" ]; then
   echo "Decrypting backup..."
-  gpg --decrypt --batch --passphrase "$PASSPHRASE" db.dump.gpg > db.dump
-  rm db.dump.gpg
+  gpg --decrypt --batch --passphrase "$PASSPHRASE" db.dump.gz.gpg > db.dump.gz
+  rm db.dump.gz.gpg
 fi
 
 conn_opts="-h $POSTGRES_HOST -p $POSTGRES_PORT -U $POSTGRES_USER -d $POSTGRES_DATABASE"
 
 echo "Restoring from backup..."
-pg_restore $conn_opts --clean --if-exists db.dump
-rm db.dump
-
+gunzip -c db.dump.gz | pg_restore $conn_opts --clean --if-exists 
+rm db.dump.gz
 echo "Restore complete."
